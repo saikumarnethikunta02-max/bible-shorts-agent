@@ -10,11 +10,33 @@ permissions:
   contents: read
 
 jobs:
-  start:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Confirm daily run
-        run: |
-          echo "Bible Shorts workflow started"
-          echo "Target publishing time: 07:00 Asia/Kolkata"
 
+    steps:
+      - name: Get repository files
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install video tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          pip install -r requirements.txt
+
+      - name: Generate Bible Short
+        run: python create_video.py
+
+      - name: Save generated video
+        uses: actions/upload-artifact@v4
+        with:
+          name: bible-short-video
+          path: |
+            bible_short.mp4
+            poster.jpg
+          if-no-files-found: error
+          retention-days: 7
